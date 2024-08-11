@@ -2,7 +2,10 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./config/db";
-import { default as authRoutes, default as categoryRoutes } from "./routes/authRoute";
+import {
+	default as authRoutes,
+	default as categoryRoutes,
+} from "./routes/authRoute";
 import orderRoutes from "./routes/orderRoute";
 import productRoutes from "./routes/productRoute";
 import shippingAddressRoutes from "./routes/shippingRoute";
@@ -17,7 +20,7 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: process.env.ORIGIN }));
 app.use(express.json());
 
 // Routes

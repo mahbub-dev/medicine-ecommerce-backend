@@ -9,7 +9,7 @@ import sendEmail from "../../utils/sendMail";
 const registerUser = async (req: Request, res: Response) => {
 	const { name, email, password } = req.body;
 	const photo = req.file?.filename;
-
+	
 	try {
 		// Check if the user already exists
 		const userExists = await User.findOne({ email });
@@ -37,7 +37,7 @@ const registerUser = async (req: Request, res: Response) => {
 		// Save OTP in the database
 		await Otp.create({
 			email: user.email,
-			token: otp,
+			otp,
 			expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiration
 		});
 
