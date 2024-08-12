@@ -22,12 +22,14 @@ const registerUser = async (req: Request, res: Response) => {
 		const salt = await bcrypt.genSalt(10);
 		const hashedPassword = await bcrypt.hash(password, salt);
 
+		// Construct the photo URL
+		const photoUrl = `${req.protocol}://${req.get("host")}/uploads/${photo}`;
 		// Create new user
 		const user = await User.create({
 			name,
 			email,
 			password: hashedPassword,
-			photo,
+			photo:photoUrl,
 			isEmailVerified: false, // Initially, the email is not verified
 		});
 

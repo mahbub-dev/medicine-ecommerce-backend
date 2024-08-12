@@ -47,11 +47,13 @@ const loginUser = async (req: Request, res: Response) => {
 			token: refreshToken,
 			expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day expiration
 		});
-
+		const { email: e, name, photo, role, isEmailVerified } = user;
 		// Send the tokens to the client
 		res.status(200).json({
+			success: true,
 			accessToken,
 			refreshToken,
+			user: { email: e, name, photo, role, isEmailVerified },
 		});
 	} catch (error: any) {
 		return sendErrorResponse(res, 500, error.message);

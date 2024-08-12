@@ -8,42 +8,54 @@ interface JwtPayload {
 }
 
 // Middleware to protect routes
-const protect = async (req: Request, res: Response, next: NextFunction) => {
-	let token: any;
+const protect = (role: any) => {
+	return async (req: Request, res: Response, next: NextFunction) => {
+		let token: any;
 
-	if (
-		req.headers.authorization &&
-		req.headers.authorization.startsWith("Bearer")
-	) {
-		try {
-			token = req.headers.authorization.split(" ")[1];
+		if (
+			req.headers.authorization &&
+			req.headers.authorization.startsWith("Bearer")
+		) {
+			try {
+				token = req.headers.authorization.split(" ")[1];
 
-			// Verify token
-			const decoded = jwt.verify(
-				token,
-				process.env.JWT_SECRET || ""
-			) as JwtPayload;
+				// Verify token
+				const decoded = jwt.verify(
+					token,
+					process.env.JWT_SECRET || ""
+				) as JwtPayload;
 
-			// Fetch user
-			const user = await User.findById(decoded.id)
-				.select("-password")
-				.lean<IUser | null>();
+				// Fetch user
+				const user = await User.findById(decoded.id)
+					.select("-password")
+					.lean<IUser | null>();
 
-			if (!user) {
-				return sendErrorResponse(res, 401, "User not found");
+				if (!user) {
+					return sendErrorResponse(res, 401, "User not found");
+				}
+				if (user.role !== role) {
+					return sendErrorResponse(
+						res,
+						401,
+						"You are not authorize to access this route"
+					);
+				}
+				req.body.user = user;
+
+				next();
+			} catch (error) {
+				return sendErrorResponse(
+					res,
+					401,
+					"Not authorized, token failed"
+				);
 			}
-
-			req.user = user;
-
-			next();
-		} catch (error) {
-			return sendErrorResponse(res, 401, "Not authorized, token failed");
 		}
-	}
 
-	if (!token) {
-		return sendErrorResponse(res, 401, "Not authorized, no token");
-	}
+		if (!token) {
+			return sendErrorResponse(res, 401, "Not authorized, no token");
+		}
+	};
 };
 
 export { protect };

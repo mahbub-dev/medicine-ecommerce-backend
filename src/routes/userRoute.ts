@@ -5,10 +5,11 @@ import {
     getUserById,
     updateUserById,
 } from "../controllers/userController";
+import { protect } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
-router.get("/", getAllUsers);
+router.get("/", protect("admin"), getAllUsers);
 router.get("/:id", getUserById);
 router.put("/:id", updateUserById);
 router.delete("/:id", deleteUserById);
