@@ -3,6 +3,7 @@ import User from "../models/userModel";
 import sendErrorResponse from "../utils/errorResponse";
 
 // Get all users with pagination
+// Get all users with pagination
 const getAllUsers = async (req: Request, res: Response) => {
 	try {
 		// Extract page and limit from query parameters
@@ -15,14 +16,26 @@ const getAllUsers = async (req: Request, res: Response) => {
 			.select("-password")
 			.skip(skip)
 			.limit(limit);
-		const total = await User.countDocuments({ role: "user" }); // Total number of users
 
-		// Return users and total count
-		res.status(200).json({ users, total });
+		// Count the total number of users with the role "user"
+		const total = await User.countDocuments({ role: "user" });
+
+		// Calculate total pages
+		const totalPages = Math.ceil(total / limit);
+
+		// Return users and pagination info
+		res.status(200).json({
+			users,
+			total,
+			totalPages,
+			page,
+			limit,
+		});
 	} catch (error: any) {
 		return sendErrorResponse(res, 500, error.message);
 	}
 };
+
 
 export default getAllUsers;
 
