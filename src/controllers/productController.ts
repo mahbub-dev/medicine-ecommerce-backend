@@ -12,7 +12,7 @@ const createProduct = async (req: Request, res: Response) => {
 			metaKey,
 			price,
 			discount,
-			stockStatus,
+			inStock,
 			status,
 			category: categories,
 			variants,
@@ -42,10 +42,10 @@ const createProduct = async (req: Request, res: Response) => {
 			metaKey,
 			price,
 			discount,
-			stockStatus,
+			inStock,
 			status,
 			categories: categories.split(","),
-			variants,
+			variants:[],
 		});
 
 		res.status(201).json(product);
@@ -54,17 +54,41 @@ const createProduct = async (req: Request, res: Response) => {
 	}
 };
 
-// Get all products
+
+// Get paginated products
 const getAllProducts = async (req: Request, res: Response) => {
 	try {
+		// Get page and limit from query parameters, set default values if not provided
+		const page = parseInt(req.query.page as string) || 1;
+		const limit = parseInt(req.query.limit as string) || 10;
+
+		// Calculate the total number of products
+		const total = await Product.countDocuments();
+
+		// Calculate total pages
+		const totalPages = Math.ceil(total / limit);
+
+		// Fetch paginated products
 		const products = await Product.find()
+			.skip((page - 1) * limit)
+			.limit(limit)
 			.populate("categories")
 			.populate("variants");
-		res.status(200).json(products);
+
+		// Respond with products, total count, and total pages
+		res.status(200).json({
+			products,
+			total,
+			totalPages,
+			limit,
+		});
 	} catch (error: any) {
 		return sendErrorResponse(res, 500, error.message);
 	}
 };
+
+
+
 
 // Get a single product by ID
 const getProductById = async (req: Request, res: Response) => {
@@ -114,10 +138,10 @@ const deleteProductById = async (req: Request, res: Response) => {
 };
 
 export {
-  createProduct,
-  deleteProductById,
-  getAllProducts,
-  getProductById,
-  updateProductById
+	createProduct,
+	deleteProductById,
+	getAllProducts,
+	getProductById,
+	updateProductById
 };
 

@@ -7,9 +7,10 @@ export interface IProduct extends Document {
 	description: string;
 	metaKey: string;
 	discount?: number;
-	stockStatus: boolean;
+	inStock: number;
 	status: "active" | "inactive";
 	categories: mongoose.Types.ObjectId[];
+	variants?: mongoose.Types.ObjectId[]; // Optional array of variant IDs
 }
 
 const productSchema: Schema = new Schema(
@@ -20,7 +21,7 @@ const productSchema: Schema = new Schema(
 		description: { type: String, required: true },
 		metaKey: { type: String, required: true },
 		discount: { type: Number, required: false },
-		stockStatus: { type: Boolean, required: true },
+		inStock: { type: Number, required: true }, // Changed to Number
 		status: {
 			type: String,
 			enum: ["active", "inactive"],
@@ -31,6 +32,13 @@ const productSchema: Schema = new Schema(
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "Category",
 				required: true,
+			},
+		],
+		variants: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Variant", // Assuming you have a Variant model
+				required: false, // Not required when creating a product
 			},
 		],
 	},
