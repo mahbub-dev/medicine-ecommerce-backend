@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import Category from "../models/categoryModel";
 import Product from "../models/productModel";
 import sendErrorResponse from "../utils/errorResponse";
 
@@ -45,7 +46,7 @@ const createProduct = async (req: Request, res: Response) => {
 			inStock,
 			status,
 			categories: categories.split(","),
-			variants:[],
+			variants: [],
 		});
 
 		res.status(201).json(product);
@@ -53,7 +54,6 @@ const createProduct = async (req: Request, res: Response) => {
 		return sendErrorResponse(res, 500, error.message);
 	}
 };
-
 
 // Get paginated products
 const getAllProducts = async (req: Request, res: Response) => {
@@ -87,8 +87,55 @@ const getAllProducts = async (req: Request, res: Response) => {
 	}
 };
 
+const getProductsByCategory = async (req: Request, res: Response) => {
+	try {
+		// Get category slugs, page, and limit from query parameters
+		const categories = req.query?.categories as string; // Array of slugs
+		const page = parseInt(req.query.page as string) || 1;
+		const limit = parseInt(req.query.limit as string) || 10;
 
+		// Extract category IDs from the found categories
+		const categoriesSlug = categories.split(",");
+		const findCategories = await Category.find({
+			slug: { $in: categoriesSlug },
+		});
 
+		if (categories.length === 0) {
+			return res.status(404).json({ message: "Categories not found" });
+		}
+		const categoryIds = findCategories.map((category) => category._id);
+		// Find the categories by slugs
+		// Calculate the total number of products in these categories
+		const total = await Product.countDocuments({
+			categories: { $in: categoryIds },
+		});
+
+		// Calculate total pages
+		const totalPages = Math.ceil(total / limit);
+
+		// Fetch paginated products by category IDs
+		const products = await Product.find({
+			categories: { $in: categoryIds },
+		})
+			.skip((page - 1) * limit)
+			.limit(limit)
+			.populate("categories")
+			.populate("variants");
+
+		// Respond with products, total count, and total pages
+		res.status(200).json({
+			products,
+			total,
+			totalPages,
+			limit,
+		});
+	} catch (error: any) {
+		console.error(error); // Log the error for debugging
+		return res
+			.status(500)
+			.json({ message: "Internal Server Error", error: error.message });
+	}
+};
 
 // Get a single product by ID
 const getProductById = async (req: Request, res: Response) => {
@@ -142,6 +189,7 @@ export {
 	deleteProductById,
 	getAllProducts,
 	getProductById,
+	getProductsByCategory,
 	updateProductById
 };
 

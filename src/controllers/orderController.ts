@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import Order from "../models/orderModel";
+import Product from "../models/productModel";
 import sendErrorResponse from "../utils/errorResponse";
 
-// Create a new order
 const createOrder = async (req: Request, res: Response) => {
 	try {
 		const {
@@ -14,6 +14,7 @@ const createOrder = async (req: Request, res: Response) => {
 			shippingAddress,
 		} = req.body;
 
+		// Create the order
 		const order = await Order.create({
 			user: user._id,
 			products,
@@ -24,6 +25,25 @@ const createOrder = async (req: Request, res: Response) => {
 				shippingAddress,
 			},
 		});
+
+	
+		// Prepare the update operations for product stock
+		const updatePromises = products.map((item: any) => {
+			return Product.findByIdAndUpdate(
+				{
+					_id: item.product,
+				},
+				{
+					$inc: {
+						inStock: -item.quantity, // Decrease the stock by ordered quantity
+					},
+				}
+			);
+		});
+
+		// Execute all update operations in parallel
+		const ress = await Promise.all(updatePromises);
+	
 		res.status(201).json(order);
 	} catch (error: any) {
 		return sendErrorResponse(res, 500, error.message);
@@ -39,14 +59,41 @@ const getAllOrders = async (req: Request, res: Response) => {
 		const page = parseInt(req.query.page as string) || 1;
 		const limit = parseInt(req.query.limit as string) || 10;
 
+		// Initialize query object
+		let query: any = {};
+
+		// Apply filters based on query parameters
+		if (req.query.status) {
+			query.status = req.query.status;
+		}
+
+		if (req.query.startDate && req.query.endDate) {
+			console.log(req.query.startDate);
+			const startDate = new Date(req.query.startDate as string);
+			const endDate = new Date(req.query.endDate as string);
+
+			// Ensure endDate is inclusive
+			endDate.setDate(endDate.getDate() + 1);
+
+			query.createdAt = {
+				$gte: startDate,
+				$lt: endDate,
+			};
+		}
+
+		// Filter by user ID if the role is "user"
+		if (req.body.user && req.body.user.role === "user") {
+			query.user = req.body.user._id;
+		}
+
 		// Calculate the total number of orders
-		const total = await Order.countDocuments();
+		const total = await Order.countDocuments(query);
 
 		// Calculate total pages
 		const totalPages = Math.ceil(total / limit);
 
 		// Fetch paginated orders with optional population of related data
-		const orders = await Order.find()
+		const orders = await Order.find(query)
 			.skip((page - 1) * limit)
 			.limit(limit)
 			.populate("user") // Populate user information if needed

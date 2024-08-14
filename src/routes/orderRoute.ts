@@ -11,7 +11,8 @@ import { protect } from "../middlewares/authMiddleware";
 const router = express.Router();
 
 router.post("/", protect("user"), createOrder);
-router.get("/", getAllOrders);
+router.get("/", protect("admin"), getAllOrders);
+router.get("/getbyuser", protect("user"), getAllOrders);
 router.get("/:id", getOrderById);
 router.put("/:id", updateOrderById);
 router.delete("/:id", deleteOrderById);

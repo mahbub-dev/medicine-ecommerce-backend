@@ -4,7 +4,8 @@ import {
     deleteProductById,
     getAllProducts,
     getProductById,
-    updateProductById,
+    getProductsByCategory,
+    updateProductById
 } from "../controllers/productController";
 import { protect } from "../middlewares/authMiddleware";
 import upload from "../middlewares/uploadeMiddleware";
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/", protect("admin"), upload.any(), createProduct);
 router.get("/", getAllProducts);
+router.get("/by-category", getProductsByCategory);
 router.get("/:id", getProductById);
 router.put("/:id", updateProductById);
 router.delete("/:id", deleteProductById);
