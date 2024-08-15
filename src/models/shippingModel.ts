@@ -8,6 +8,7 @@ export interface IShippingAddress extends Document {
 	address: string;
 	name: string;
 	phone: string;
+	status?: "active" | "deleted";
 }
 
 const shippingAddressSchema: Schema = new Schema(
@@ -23,6 +24,7 @@ const shippingAddressSchema: Schema = new Schema(
 		address: { type: String, required: true },
 		name: { type: String, required: true },
 		phone: { type: String, required: true },
+		status:{type:String,enum:['active','deleted'],default:'active'}
 	},
 	{ timestamps: true }
 );

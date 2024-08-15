@@ -36,6 +36,7 @@ const getAllShippingAddresses = async (req: Request, res: Response) => {
 	try {
 		const shippingAddresses = await ShippingAddress.find({
 			user: req.body.user._id,
+			status: "active",
 		});
 		res.status(200).json(shippingAddresses);
 	} catch (error: any) {
@@ -76,8 +77,9 @@ const updateShippingAddressById = async (req: Request, res: Response) => {
 // Delete a shipping address by ID
 const deleteShippingAddressById = async (req: Request, res: Response) => {
 	try {
-		const shippingAddress = await ShippingAddress.findByIdAndDelete(
-			req.params.id
+		const shippingAddress = await ShippingAddress.findByIdAndUpdate(
+			req.params.id,
+			{ status: "deleted" }
 		);
 		if (!shippingAddress) {
 			return sendErrorResponse(res, 404, "Shipping address not found");
@@ -91,10 +93,10 @@ const deleteShippingAddressById = async (req: Request, res: Response) => {
 };
 
 export {
-  createShippingAddress,
-  deleteShippingAddressById,
-  getAllShippingAddresses,
-  getShippingAddressById,
-  updateShippingAddressById
+	createShippingAddress,
+	deleteShippingAddressById,
+	getAllShippingAddresses,
+	getShippingAddressById,
+	updateShippingAddressById
 };
 
