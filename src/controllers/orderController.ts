@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Order from "../models/orderModel";
 import Product from "../models/productModel";
+import User from "../models/userModel";
 import sendErrorResponse from "../utils/errorResponse";
 
 const createOrder = async (req: Request, res: Response) => {
@@ -26,7 +27,6 @@ const createOrder = async (req: Request, res: Response) => {
 			},
 		});
 
-	
 		// Prepare the update operations for product stock
 		const updatePromises = products.map((item: any) => {
 			return Product.findByIdAndUpdate(
@@ -43,7 +43,7 @@ const createOrder = async (req: Request, res: Response) => {
 
 		// Execute all update operations in parallel
 		const ress = await Promise.all(updatePromises);
-	
+
 		res.status(201).json(order);
 	} catch (error: any) {
 		return sendErrorResponse(res, 500, error.message);
@@ -62,13 +62,16 @@ const getAllOrders = async (req: Request, res: Response) => {
 		// Initialize query object
 		let query: any = {};
 
+		if (req.body.user.role === "user") {
+			query.user = req.body.user._id;
+		}
+
 		// Apply filters based on query parameters
 		if (req.query.status) {
 			query.status = req.query.status;
 		}
 
 		if (req.query.startDate && req.query.endDate) {
-			console.log(req.query.startDate);
 			const startDate = new Date(req.query.startDate as string);
 			const endDate = new Date(req.query.endDate as string);
 
@@ -96,8 +99,10 @@ const getAllOrders = async (req: Request, res: Response) => {
 		const orders = await Order.find(query)
 			.skip((page - 1) * limit)
 			.limit(limit)
-			.populate("user") // Populate user information if needed
-			.populate("products.product"); // Populate product information within each order
+			.populate({ model: User, path: "user", select: "-password" }) // Populate user information if needed
+			.populate("products.product") // Populate product information within each order
+			.populate("products.variant") // Populate product information within each order
+			.populate("shipping.shippingAddress"); // Populate product information within each order
 
 		// Respond with orders, total count, and total pages
 		res.status(200).json({
@@ -145,6 +150,30 @@ const updateOrderById = async (req: Request, res: Response) => {
 		return sendErrorResponse(res, 500, error.message);
 	}
 };
+// Update an order by ID
+const updateOrderStatusById = async (req: Request, res: Response) => {
+	const { status } = req.body;
+
+	try {
+		const order = await Order.findByIdAndUpdate(
+			req.params.id,
+			{
+				status,
+				$push: { statusUpdates: { status, updatedAt: Date.now() } },
+			},
+			{
+				new: true,
+			}
+		);
+
+		if (!order) {
+			return sendErrorResponse(res, 404, "Order not found");
+		}
+		res.status(200).json(order);
+	} catch (error: any) {
+		return sendErrorResponse(res, 500, error.message);
+	}
+};
 
 // Delete an order by ID
 const deleteOrderById = async (req: Request, res: Response) => {
@@ -164,6 +193,7 @@ export {
 	deleteOrderById,
 	getAllOrders,
 	getOrderById,
-	updateOrderById
+	updateOrderById,
+	updateOrderStatusById
 };
 
