@@ -15,7 +15,7 @@ const createProduct = async (req: Request, res: Response) => {
 			discount,
 			inStock,
 			status,
-			category: categories,
+			categories,
 			variants,
 		} = req.body;
 
@@ -27,8 +27,6 @@ const createProduct = async (req: Request, res: Response) => {
 			}`;
 			photos.push(photoUrl);
 		});
-		console.log(categories);
-		// Construct the photo URL
 
 		const existingProduct = await Product.findOne({ slug });
 		if (existingProduct) {
@@ -45,7 +43,7 @@ const createProduct = async (req: Request, res: Response) => {
 			discount,
 			inStock,
 			status,
-			categories: categories.split(","),
+			categories: categories?.split(","),
 			variants: [],
 		});
 
@@ -95,12 +93,12 @@ const getProductsByCategory = async (req: Request, res: Response) => {
 		const limit = parseInt(req.query.limit as string) || 10;
 
 		// Extract category IDs from the found categories
-		const categoriesSlug = categories.split(",");
+		const categoriesSlug = categories?.split(",");
 		const findCategories = await Category.find({
 			slug: { $in: categoriesSlug },
 		});
-
-		if (categories.length === 0) {
+		console.log(categories);
+		if (categories?.length === 0) {
 			return res.status(404).json({ message: "Categories not found" });
 		}
 		const categoryIds = findCategories.map((category) => category._id);

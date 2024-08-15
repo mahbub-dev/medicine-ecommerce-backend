@@ -11,7 +11,7 @@ interface JwtPayload {
 const protect = (role: any) => {
 	return async (req: Request, res: Response, next: NextFunction) => {
 		let token: any;
-		console.log(role);
+	
 		if (
 			req.headers.authorization &&
 			req.headers.authorization.startsWith("Bearer")

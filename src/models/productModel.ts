@@ -2,10 +2,10 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IProduct extends Document {
 	name: string;
-	slug: string;
-	photos: string[];
 	description: string;
 	metaKey: string;
+	slug: string;
+	photos: string[];
 	discount?: number;
 	inStock: number;
 	status: "active" | "inactive";
