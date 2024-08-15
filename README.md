@@ -23,7 +23,7 @@ This is the backend for the medicine e-commerce platform built with Node.js, Exp
 - **Environment Management**: dotenv
 - **Validation**: express-validator
 - **Email Handling**: NodeMailer
-- **API Documentation**: Swagger
+
 
 ## Getting Started
 
