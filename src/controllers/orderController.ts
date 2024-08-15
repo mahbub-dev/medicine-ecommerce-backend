@@ -25,6 +25,7 @@ const createOrder = async (req: Request, res: Response) => {
 				shippingCost,
 				shippingAddress,
 			},
+			statusUpdates: [{ status: "pending", updatedAt: Date.now() }],
 		});
 
 		// Prepare the update operations for product stock
