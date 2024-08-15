@@ -5,7 +5,7 @@ export interface IUser extends Document {
 	email: string;
 	password: string;
 	photo: string;
-	role: "super admin" | "admin" | "user";
+	role: "super-admin" | "admin" | "user";
 	isEmailVerified: boolean;
 	shipping: mongoose.Types.ObjectId[];
 }
